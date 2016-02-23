@@ -14,9 +14,14 @@
 		Total Income:<input type="text" readonly id="totalIncome">
 	</form>
 	<form autocomplete="off">
-		Please select which applies to you.
-		<input type="radio" id="singleRadio" value="single" name="status">Single
-		<input type="radio" id="marriedRadio" value="married" name="status">Married<br>
+		If someone can claim you or your spouse (if filing joint return) as a dependent, check the approprate box(es) below: <br>
+		<input type="checkbox" id="youDependent" value="you" name="dependent" class="dependentChecks">You<br>
+		<input type="checkbox" id="spouseDependent" value="spouse" name="dependent" class="dependentChecks">Spouse<br>
+		<br>
+		Please select which filing status applies to you.<br>
+		<input type="radio" id="singleRadio" value="single" name="status">Single<br>
+		<input type="radio" id="marriedRadio" value="married" name="status">Married Filing Jointly<br>
+		<input type="button" id="standDeductButton" value="Calculate Standard Deduction">
 		Standard Deduction: <input type="text" id="standardDeduction" readonly><br>
 		Taxable income: <input type="text" id="taxableIncome" readonly>
 	</form>
@@ -26,16 +31,20 @@
 		Federal Tax withheld <input type="text" id="withheldTax"><br>
 		Earned income credit: <input type="text" id="earnedIncomeCredit"><br>
 		Nontaxable Combat Pay election <input type="text" id="combatPay"><br>
+		<input type="button" id="creditsButton" value="Calculate Credits">
 		Total Payments and Credits <input type="text" id="totalCredits" readonly></input><br>
+		<input type="button" id="taxCalcButton" value="Calculate Preliminary Tax">
 		Tax: <input type="text" id="prelimTaxTotal" readonly></input><br>
 		Did you have health care coverage last year?
 		<input type="radio" id="yesHealth" value="yesHealth" name="boolean">Yes<br>
 		<input type="radio" id="noHealth" value="noHealth" name="boolean">No<br>
-		Health care tax <input type="text" id="healthTax" value="750.00" readonly><br>
-		Total Tax: <input type="text" id="healthTax" readonly><br>
+		Health care tax <input type="text" id="healthTax" readonly><br>
+		<input type="button" id="totalTaxButton" value="Calculate Total Tax">
+		Total Tax: <input type="text" id="totalTax" readonly><br>
 	</form>
 	<h2>Refund/Amount Owed</h2>
 		<form>
+			<input type="button" id="refundCalcButton" value="Calculate Refund">
 			Total Refund <input type="text" id="refundAmount" readonly><br>
 			Total Amound Owed: <input type="text" id="owedAmount" readonly>
 		</form>
@@ -52,6 +61,16 @@
 		var unemployment;
 		var totalIncome;
 		var taxableIncome;
+		var withheldTax;
+		var	eic;
+		var combatPay;
+		var totalCredits;
+		var prelimTaxTotal
+		var totalTax;
+		var exemption = 0;
+		var prelimDeduct = 1000;
+		var maxDeduct;
+
 
 		$("#incomeButton").click(function(){
 			wages = parseFloat($("#wagesInput").val())
@@ -63,24 +82,243 @@
 			$("#totalIncome").val(totalIncome);
 		});
 		
-		$("#singleRadio").click(function(){
-			$("#standardDeduction").val(10150);
-			if ((totalIncome - 10150) > 0) {
-				taxableIncome = (totalIncome - 10150);
-				$("#taxableIncome").val(taxableIncome);
+		$("#youDependent").click(function(){
+			console.log("You is " + $("#youDependent").is(":checked"));
+			console.log("Spouse is " + $("#spouseDependent").is(":checked"));
+			if (($("#youDependent").is(":checked")) && (!($("#spouseDependent").is(":checked")))) {
+				exemption = 3950;
 			}
-			else { $("#taxableIncome").val(0); }
+			else if ((!($("#youDependent").is(":checked"))) && ($("#spouseDependent").is(":checked"))) {
+				exemption = 3950;
+			}
+			else { exemption = 0 }
+			console.log(exemption);
+		});
+
+		$("#spouseDependent").click(function(){
+			// console.log("You is " + $("#youDependent").checked);
+			// console.log("Spouse is " + $("#spouseDependent").checked);
+			console.log("You is " + $("#youDependent").is(":checked"));
+			console.log("Spouse is " + $("#spouseDependent").is(":checked"))
+			if ((!($("#youDependent").is(":checked"))) && ($("#spouseDependent").is(":checked"))) {
+				exemption = 3950;
+			}
+			else if (($("#youDependent").is(":checked")) && (!($("#spouseDependent").is(":checked")))) {
+				exemption = 3950;
+			}
+			else { exemption = 0 }
+			console.log(exemption);
+		});
+
+			
+		
+		
+
+
+		$("#standDeductButton").click(function(){
+			if ((totalIncome + 350) > 1000) {
+			prelimDeduct = (totalIncome + 350);
+			}
+			if (($("#marriedRadio").is(":checked")) && (($("#youDependent").is(":checked")) || ($("#spouseDependent").checked))){
+				maxDeduct = 12400;
+				if (prelimDeduct < maxDeduct){
+					$("#standardDeduction").val(prelimDeduct + exemption); 
+				}
+				else {
+					$("#standardDeduction").val(maxDeduct + exemption)
+				}
+			}
+			else if (($("#singleRadio").is(":checked")) && (($("#youDependent").is(":checked")) || ($("#spouseDependent").is(":checked")))){
+				maxDeduct = 6200;
+				if (prelimDeduct < maxDeduct){
+					$("#standardDeduction").val(prelimDeduct + exemption); 
+				}
+				else {
+					$("#standardDeduction").val(maxDeduct + exemption)
+				}
+			}
+			else if (($("#singleRadio").is(":checked")) && (!($("#youDependent").is(":checked")) || !($("#spouseDependent").is(":checked")))) {
+					$("#standardDeduction").val(10150);
+					if ((totalIncome - 10150) > 0) {
+						taxableIncome = (totalIncome - 10150);
+						$("#taxableIncome").val(taxableIncome);
+					}
+					else { $("#taxableIncome").val(0); }
+			}
+			else if  (($("#marriedRadio").is(":checked")) && (!($("#youDependent").is(":checked")) || !($("#spouseDependent").is(":checked")))) {
+					$("#standardDeduction").val(20300);
+					console.log(totalIncome);
+					if ((totalIncome - 20300) > 0) {
+					taxableIncome = (totalIncome - 20300);
+					$("#taxableIncome").val(taxableIncome);
+					}
+					else { $("#taxableIncome").val(0); }
+			}
+
+		});
+		$("#singleRadio").click(function(){
+			
 			
 		});
 		
 		$("#marriedRadio").click(function(){
-			$("#standardDeduction").val(20300);
-			console.log(totalIncome);
-			if ((totalIncome - 20300) > 0) {
-				taxableIncome = (totalIncome - 20300);
-				$("#taxableIncome").val(taxableIncome);
+			
+		});
+
+		$("#creditsButton").click(function(){
+			withheldTax = parseFloat($("#withheldTax").val());
+			eic = parseFloat($("#earnedIncomeCredit").val());
+			totalCredits = plus(withheldTax, eic, 0).toFixed(2);
+			console.log(totalCredits);
+			$("#totalCredits").val(totalCredits);
+		});
+
+		function findTaxSingle(){
+			var bracket1 = 9275;
+			var bracket2 = 37650;
+			var bracket3 = 91150;
+			var bracket4 = 190150;
+			var bracket5 = 413350;
+			var bracket6 = 415050;
+
+			if (taxableIncome <= 0) {
+				prelimTaxTotal = 0;
 			}
-			else { $("#taxableIncome").val(0); }
+			else if ((0 < taxableIncome) && (taxableIncome <= bracket1)) {
+				prelimTaxTotal = (0.1 * taxableIncome);
+			}
+			else if ((bracket1 < taxableIncome) && (taxableIncome <= bracket2)) {
+				prelimTaxTotal = (
+					(0.1*bracket1) + ((taxableIncome - bracket1)*0.15)
+				);
+			}
+			else if ((bracket2 < taxableIncome) && (taxableIncome <= bracket3)) {
+				prelimTaxTotal = (
+					(0.1*bracket1) + ((bracket2 - bracket1)*0.15) + ((taxableIncome - bracket2)*0.25)
+				);
+			}
+			else if ((bracket3 < taxableIncome) && (taxableIncome <= bracket4)) {
+				prelimTaxTotal = (	
+					(0.1*bracket1) + ((bracket2 - bracket1)*0.15) + ((bracket3 - bracket2)*0.25) 
+					+ ((taxableIncome - bracket3)*0.28)
+				);
+			}
+			else if ((bracket4 < taxableIncome) && (taxableIncome <= bracket5)) {
+				prelimTaxTotal = (	
+					(0.1*bracket1) + ((bracket2 - bracket1)*0.15) + ((bracket3 - bracket2)*0.25) 
+					+ ((bracket4 - bracket3)*0.28) + ((taxableIncome - bracket4)*0.33)
+				);
+			}
+			else if ((bracket5 < taxableIncome) && (taxableIncome <= bracket6)) {
+				prelimTaxTotal = (	
+					(0.1*bracket1) + ((bracket2 - bracket1)*0.15) + ((bracket3 - bracket2)*0.25) 
+					+ ((bracket4 - bracket3)*0.28) + ((bracket5 - bracket4)*0.33) + ((taxableIncome - bracket5)*0.35)
+				);
+			}
+			else {
+				prelimTaxTotal = (
+					(0.1*bracket1) + ((bracket2 - bracket1)*0.15) + ((bracket3 - bracket2)*0.25) 
+					+ ((bracket4 - bracket3)*0.28) + ((bracket5 - bracket4)*0.33) + ((bracket6- bracket5)*0.35) + ((taxableIncome - bracket6)*0.396)
+				);
+			}
+
+		};
+
+		function findTaxMarried(){
+			var bracket1 = 18550;
+			var bracket2 = 75300;
+			var bracket3 = 151900;
+			var bracket4 = 231450;
+			var bracket5 = 413350;
+
+			if (taxableIncome <= 0) {
+				prelimTaxTotal = 0;
+			}
+			else if ((0 < taxableIncome) && (taxableIncome <= bracket1)) {
+				prelimTaxTotal = (0.1 * taxableIncome);
+			}
+			else if ((bracket1 < taxableIncome) && (taxableIncome <= bracket2)) {
+				prelimTaxTotal = (
+					(0.1*bracket1) + ((taxableIncome - bracket1)*0.15)
+				);
+			}
+			else if ((bracket2 < taxableIncome) && (taxableIncome <= bracket3)) {
+				prelimTaxTotal = (
+					(0.1*bracket1) + ((bracket2 - bracket1)*0.15) + ((taxableIncome - bracket2)*0.25)
+				);
+			}
+			else if ((bracket3 < taxableIncome) && (taxableIncome <= bracket4)) {
+				prelimTaxTotal = (	
+					(0.1*bracket1) + ((bracket2 - bracket1)*0.15) + ((bracket3 - bracket2)*0.25) 
+					+ ((taxableIncome - bracket3)*0.28)
+				);
+			}
+			else if ((bracket4 < taxableIncome) && (taxableIncome <= bracket5)) {
+				prelimTaxTotal = (	
+					(0.1*bracket1) + ((bracket2 - bracket1)*0.15) + ((bracket3 - bracket2)*0.25) 
+					+ ((bracket4 - bracket3)*0.28) + ((taxableIncome - bracket4)*0.33)
+				);
+			}
+			else if ((bracket5 < taxableIncome) && (taxableIncome <= bracket6)) {
+				prelimTaxTotal = (	
+					(0.1*bracket1) + ((bracket2 - bracket1)*0.15) + ((bracket3 - bracket2)*0.25) 
+					+ ((bracket4 - bracket3)*0.28) + ((bracket5 - bracket4)*0.33) + ((taxableIncome - bracket5)*0.35)
+				);
+			}
+			else {
+				prelimTaxTotal = (
+					(0.1*bracket1) + ((bracket2 - bracket1)*0.15) + ((bracket3 - bracket2)*0.25) 
+					+ ((bracket4 - bracket3)*0.28) + ((bracket5 - bracket4)*0.33) + ((bracket6- bracket5)*0.35) + ((taxableIncome - bracket6)*0.396)
+				);
+			}
+		};
+
+		$("#taxCalcButton").click(function(){
+			console.log("Taxable Income is: " + taxableIncome);
+			if ($("#singleRadio").is(":checked")) {
+				findTaxSingle();
+			}
+			else if ($("#marriedRadio").is(":checked")) {
+				findTaxMarried();
+			}
+			else {
+				console.log("Please select a filing status");
+				return;
+			}
+
+			var prelimTaxTotalRound = prelimTaxTotal.toFixed(2);
+			console.log("Preliminary Tax Total is: " + prelimTaxTotal);
+			$("#prelimTaxTotal").val(prelimTaxTotalRound);
+		});
+
+		$("#totalTaxButton").click(function(){
+			if (!($("#yesHealth").is(":checked")) && !($("#noHealth").is(":checked")))	{
+				console.log("You must select a health insurance answer.");
+			}
+			else if ($("#yesHealth").is(":checked")){
+				$("#healthTax").val(0);
+				totalTax = prelimTaxTotal.toFixed(2);
+				$("#totalTax").val(totalTax);
+			}
+			else {
+				$("#healthTax").val(750);
+				totalTax = (prelimTaxTotal + 750)
+				var totalTaxRound = totalTax.toFixed(2);
+				$("#totalTax").val(totalTaxRound);
+			}
+		});
+
+		$("#refundCalcButton").click(function(){
+			var refund = (totalCredits - totalTax);
+			var refundRound = refund.toFixed(2);
+			if (refundRound >= 0) {
+				$("#refundAmount").val(refundRound);
+				$("#owedAmount").val(0);
+			}
+			else {
+				$("#refundAmount").val(0);
+				$("#owedAmount").val((-refundRound).toFixed(2));
+			}
 		});
 
 
