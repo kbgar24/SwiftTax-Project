@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+</head>
+<body>
+	<h2>Income</h2>
+	<form autocomplete="off">
+		Enter wages: <input type="text" id="wagesInput"><br>
+		Enter taxable interest: <input type="text" id="interestInput"><br>
+		Unemployment compensation: <input type="text" id="unemploymentInput"><br>
+		<input type="button" id="incomeButton" value="Calculate Income">
+		Total Income:<input type="text" readonly id="totalIncome">
+	</form>
+	<form autocomplete="off">
+		Please select which applies to you.
+		<input type="radio" id="singleRadio" value="single" name="status">Single
+		<input type="radio" id="marriedRadio" value="married" name="status">Married<br>
+		Standard Deduction: <input type="text" id="standardDeduction" readonly><br>
+		Taxable income: <input type="text" id="taxableIncome" readonly>
+	</form>
+	<br>
+	<h2>Credits</h2>
+	<form autocomplete="off">
+		Federal Tax withheld <input type="text" id="withheldTax"><br>
+		Earned income credit: <input type="text" id="earnedIncomeCredit"><br>
+		Nontaxable Combat Pay election <input type="text" id="combatPay"><br>
+		Total Payments and Credits <input type="text" id="totalCredits" readonly></input><br>
+		Tax: <input type="text" id="prelimTaxTotal" readonly></input><br>
+		Did you have health care coverage last year?
+		<input type="radio" id="yesHealth" value="yesHealth" name="boolean">Yes<br>
+		<input type="radio" id="noHealth" value="noHealth" name="boolean">No<br>
+		Health care tax <input type="text" id="healthTax" value="750.00" readonly><br>
+		Total Tax: <input type="text" id="healthTax" readonly><br>
+	</form>
+	<h2>Refund/Amount Owed</h2>
+		<form>
+			Total Refund <input type="text" id="refundAmount" readonly><br>
+			Total Amound Owed: <input type="text" id="owedAmount" readonly>
+		</form>
+<script>
+	$(document).ready(function(){
+		'use strict'
+
+		function plus(a,b,c) {
+			return(a+b+c);
+		};
+		
+		var wages;
+		var interest;
+		var unemployment;
+		var totalIncome;
+		var taxableIncome;
+
+		$("#incomeButton").click(function(){
+			wages = parseFloat($("#wagesInput").val())
+			interest = parseFloat($("#interestInput").val());
+			unemployment = parseFloat($("#unemploymentInput").val());
+			totalIncome = plus(wages,interest,unemployment).toFixed(2);
+			console.log(wages);
+			console.log(totalIncome);
+			$("#totalIncome").val(totalIncome);
+		});
+		
+		$("#singleRadio").click(function(){
+			$("#standardDeduction").val(10150);
+			if ((totalIncome - 10150) > 0) {
+				taxableIncome = (totalIncome - 10150);
+				$("#taxableIncome").val(taxableIncome);
+			}
+			else { $("#taxableIncome").val(0); }
+			
+		});
+		
+		$("#marriedRadio").click(function(){
+			$("#standardDeduction").val(20300);
+			console.log(totalIncome);
+			if ((totalIncome - 20300) > 0) {
+				taxableIncome = (totalIncome - 20300);
+				$("#taxableIncome").val(taxableIncome);
+			}
+			else { $("#taxableIncome").val(0); }
+		});
+
+
+
+	});
+</script>
+</body>
+</html>
